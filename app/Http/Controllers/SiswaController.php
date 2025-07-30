@@ -1,0 +1,141 @@
+<?php
+
+namespace App\Http\Controllers;
+
+use App\Models\Siswa;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
+use RealRashid\SweetAlert\Facades\Alert;
+use App\Imports\SiswaImport;
+use Maatwebsite\Excel\Facades\Excel;
+
+class SiswaController extends Controller
+{
+    /**
+     * Display a listing of the resource.
+     *
+     * @return \Illuminate\Http\Response
+     */
+    public function index()
+    {
+        if(!Auth::check()){
+            return redirect('/');
+        }
+        $siswa = Siswa::all();
+        return view('siswa.index', compact('siswa'));
+    }
+
+    /**
+     * Show the form for creating a new resource.
+     *
+     * @return \Illuminate\Http\Response
+     */
+    public function create()
+    {
+        if(!Auth::check()){
+            return redirect('/');
+        }
+        return view('siswa.create');
+    }
+
+    /**
+     * Store a newly created resource in storage.
+     *
+     * @param  \Illuminate\Http\Request  $request
+     * @return \Illuminate\Http\Response
+     */
+    public function store(Request $request)
+    {
+        if(!Auth::check()){
+            return redirect('/');
+        }
+        $request->validate([
+            'nama' => 'required',
+            'email' => 'nullable',
+            'notelp' => 'nullable',
+            'alamat' => 'nullable'
+        ]);
+        Siswa::create($request->all());
+        Alert::success('Success', 'Data berhasil ditambah');
+        return redirect('/siswa');
+        // dd($request);
+    }
+
+    /**
+     * Display the specified resource.
+     *
+     * @param  int  $id
+     * @return \Illuminate\Http\Response
+     */
+    public function show($id)
+    {
+        //
+    }
+
+    /**
+     * Show the form for editing the specified resource.
+     *
+     * @param  int  $id
+     * @return \Illuminate\Http\Response
+     */
+    public function edit($id_siswa)
+    {
+        if(!Auth::check()){
+            return redirect('/');
+        }
+        $siswa = Siswa::findOrFail($id_siswa);
+        // dd($siswa);
+        return view('siswa.show', compact('siswa'));
+    }
+
+    /**
+     * Update the specified resource in storage.
+     *
+     * @param  \Illuminate\Http\Request  $request
+     * @param  int  $id
+     * @return \Illuminate\Http\Response
+     */
+    public function update(Request $request, $id_siswa)
+    {
+        if(!Auth::check()){
+            return redirect('/');
+        }
+        $siswa = Siswa::findOrFail($id_siswa);
+        // dd($siswa);
+        $siswa->update($request->all());
+        Alert::success('Success', 'Data berhasil Di Update');
+        return redirect('/siswa');
+    }
+
+    /**
+     * Remove the specified resource from storage.
+     *
+     * @param  int  $id
+     * @return \Illuminate\Http\Response
+     */
+    public function destroy($id_siswa)
+    {
+        if(!Auth::check()){
+            return redirect('/');
+        }
+        $siswa = Siswa::findOrFail($id_siswa);
+        // dd($siswa->with('absensis'));
+        $siswa->delete($siswa);
+        Alert::success('Success', 'Data berhasil dihapus');
+        return back();
+    }
+
+
+        public function importExcel(Request $request)
+    {
+        $request->validate([
+            'file' => 'required|mimes:xlsx'
+        ]);
+        
+
+        Excel::import(new SiswaImport, $request->file('file'));
+
+        return redirect('/siswa')->with('success', 'Data siswa berhasil diimpor!');
+    }
+    
+}
